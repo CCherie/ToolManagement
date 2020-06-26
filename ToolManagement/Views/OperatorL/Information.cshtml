@@ -1,0 +1,189 @@
+﻿@{
+    ViewBag.Title = "GetInformation";
+    Layout = "~/Views/Shared/_LayoutOperatorL.cshtml";
+}
+<style>
+    #box {
+        height: 70px;
+    }
+    .box-left {
+        width: 10%;
+        padding: 20px 0;
+        text-align: center;
+        background-color: #f3f5f7;
+        color: #07111b;
+        font-weight: 700;
+        float: left;
+        border-left: 5px solid #eee;
+    }
+    .box-right {
+        width: 70%;
+        margin-left: 8px;
+        padding: 20px 0 20px 22px;
+        border-bottom: 1px solid #d9dde1;
+        float: left;
+    }
+</style>
+<ul class="nav nav-tabs">
+    <li class="active"><a href="#panel" data-toggle="tab" aria-controls="home" role="tab">个人信息</a></li>
+    <li><a href="#pane2" data-toggle="tab">数据统计</a></li>
+</ul>
+<div class="tab-content">
+    <br />
+    <div class="tab-pane active" id="panel">
+        <div class="col-sm-offset-1">
+            <div id="box">
+                <div id="box-left">
+                    <label class="box-left">工号</label>
+                    <div class="box-right" id="number">
+                    </div>
+                </div>
+            </div>
+            <div id="box">
+                <div id="box-left">
+                    <label class="box-left">姓名</label>
+                    <div class="box-right" id="name">
+                    </div>
+                </div>
+            </div>
+            <div id="box">
+                <div id="box-left">
+                    <label class="box-left">性别</label>
+                    <div class="box-right" id="gender">
+                    </div>
+                </div>
+            </div>
+            <div id="box">
+                <div id="box-left">
+                    <label class="box-left">电话</label>
+                    <div class="box-right" id="phone">
+                        <a data-toggle="modal" data-target="#myModal2">
+                            <span style="float:right" class="glyphicon glyphicon-pencil"></span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div id="box">
+                <div id="box-left">
+                    <label class="box-left">入职日期</label>
+                    <div class="box-right" id="hiredate">
+
+                    </div>
+                </div>
+            </div>
+            <div id="box">
+                <div id="box-left">
+                    <label class="box-left">家庭住址</label>
+                    <div class="box-right" id="address">
+                        <a data-toggle="modal" data-target="#myModal1">
+                            <span style="float:right" class="glyphicon glyphicon-pencil"></span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="tab-pane" id="pane2">
+
+    </div>
+</div>
+<div class="modal fade" id="myModal1" tabindex="-1" role="dialog">
+    <div class="modal-dialog  modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <!-- 模态框主体 -->
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <input type="text" id="new_address" class="form-control" placeholder="请输入新的地址" />
+                    </div>
+                    <input class="btn btn-block btn-primary" type="button" value="确定" onclick="updataAddress()" />
+                </form>
+            </div>
+            <!-- 模态框底部 -->
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="myModal2" tabindex="-1" role="dialog">
+    <div class="modal-dialog  modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <!-- 模态框主体 -->
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <input type="text" id="new_phone" class="form-control" placeholder="请输入新的号码" />
+                    </div>
+                    <input class="btn btn-block btn-primary" type="button" value="确定" onclick="updataPhone()" />
+                </form>
+            </div>
+            <!-- 模态框底部 -->
+        </div>
+    </div>
+</div>
+@section scripts{
+    <script>
+        $(function () {
+            var data = {
+                user_number: $.cookie("user_id")
+            }
+            console.log(data);
+            $.ajax({
+                type: "post",//方法类型
+                url: "/operatorl/GetInformation",
+                data: data,
+                async: true,
+                success: function (result) {
+                    var data = eval("(" + result + ")");
+                    console.log(data);
+                    $("#number").append(data.data.user_number);
+                    $("#name").append(data.data.user_name);
+                    $("#gender").append(data.data.user_gender);
+                    $("#phone").append(data.data.user_phone);
+                    $("#hiredate").append(data.data.user_hiredate.substring(0, 10));
+                    $("#address").append(data.data.user_address)
+                },
+                error: function () {
+                    console.log("系统出错了，请联系管理员解决");
+                }
+            })
+        })
+        //修改家庭住址
+        function updataAddress() {
+            var data = {
+                user_number: $.cookie("user_id"),
+                new_address: $("#new_address").val()
+            }
+            $.ajax({
+                type: "post",//方法类型
+                url: "/operatorl/updataInformation",
+                data: data,
+                async: true,
+                contentType: "application/x-www-form-urlencoded; charset=utf-8", 
+                success: function (result) {
+                    location.reload();
+                },
+                error: function () {
+                    console.log("系统出错了，请联系管理员解决");
+                }
+            })
+        }
+        //修改电话号码
+        function updataPhone() {
+            var data = {
+                user_number: $.cookie("user_id"),
+                new_phone: $("#new_phone").val()
+            }
+            $.ajax({
+                type: "post",//方法类型
+                url: "/operatorl/updataInformation",
+                data: data,
+                async: true,
+                success: function (result) {
+                    location.reload();
+                },
+                error: function () {
+                    console.log("系统出错了，请联系管理员解决");
+                }
+            })
+        }
+    </script>
+}

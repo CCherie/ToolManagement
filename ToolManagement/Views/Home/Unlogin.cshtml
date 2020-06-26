@@ -1,0 +1,28 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Unlogin</title>
+</head>
+<body onload="closeWindow();">
+    <div id="show">
+        倒计时10秒后关闭当前窗口
+    </div>
+    <script>
+        var time = 3;
+        function closeWindow() {
+            window.setTimeout('closeWindow()', 1000);
+            if (time > 0) {
+                document.getElementById("show").innerHTML = " 请先登录<font color=red>" + time + "</font>秒后跳转......";
+                time--;
+            }
+            else {
+                window.location.href = "/Home/Index";
+            }
+        }  
+    </script>
+</body>
+</html>

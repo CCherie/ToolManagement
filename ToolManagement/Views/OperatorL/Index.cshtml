@@ -1,0 +1,81 @@
+﻿@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_LayoutOperatorL.cshtml";
+}
+        <ul class="nav nav-tabs">
+            <li class="active"><a href="#panel" data-toggle="tab">所有库存</a></li>
+            <li><a href="#pane2" data-toggle="tab">Section 2</a></li>
+        </ul>
+        <div class="tab-content">
+            <br />
+            <div class="tab-pane active col-sm-offset-1" id="panel">
+                <div>
+                    <form class="navbar-form navbar-left" role="search">
+                        <div class="form-group">
+                            <input type="text" class="form-control" id="searchtxt" placeholder="请输入关键字...">
+                        </div>
+                        <input type="button" class="btn btn-default" onclick="search()" value="查询">
+                    </form>
+                </div>
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>编号</th>
+                            <th>位置</th>
+                            <th>入库时间</th>
+                            <th>型号</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tool_bank"></tbody>
+                </table>
+            </div>
+            <div class="tab-pane" id="pane2">
+
+            </div>
+        </div>
+@section scripts{
+    <script>
+        //获取所有仓库数据
+        $(function () {
+            $.ajax({
+                type: "get",//方法类型
+                datatype: "json",//预期服务器返回的数据类型
+                url: "/Home/getbank",
+                async: true,
+                success: function (result) {
+                    var data = eval("(" + result + ")");
+                    console.log(data);
+                    for (var i = 0; i < data.data.length; i++) {
+                        $("#tool_bank").append("<tr><td>" + data.data[i].tool_number +
+                            "</td ><td>" + data.data[i].tool_location +
+                            "</td ><td>" + data.data[i].tool_buydate +
+                            "</td ><td>" + data.data[i].tool_model +
+                            "</td ><td>" + data.data[i].tool_status +
+                            "</td ><td><button type='button' class='btn btn-danger btn-sm' onclick='toRepair(" + data.data[i].tool_number +
+                            ")'>报修</button>" +
+                            "</td ></tr>");
+                    }
+                },
+                error: function () {
+                    console.log("系统出错了，请联系管理员解决");
+                }
+            })
+        })
+        //查询数据
+        function search() {
+            console.log("xxx");
+            var value = $("#searchtxt").val();
+            $("table tbody tr").hide().filter(":contains(" + value + ")").show();
+        }
+        function toRepair(x) {
+            window.location.href = "/OperatorL/Repair?tool_number=" + x;
+        }
+    </script>
+}
+
+
+
+
+

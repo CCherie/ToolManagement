@@ -1,0 +1,132 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>welcome</title>
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+    <style>
+        body {
+            padding: 0;
+        }
+
+        .main {
+            margin: 50px;
+            margin-top: 0;
+        }
+
+        .top {
+            height: 200px;
+        }
+
+        .head {
+            width: 100%;
+            height: 70%;
+            background-color: #ce4844;
+            position: relative;
+        }
+
+        #image {
+            width: 130px;
+            height: 130px;
+            background-color: white;
+            margin-right: 5%;
+            margin-top: 60px;
+            float: right;
+            border-radius: 50%;
+            padding: 10px;
+            text-align: center;
+            font-size: small;
+            color: #ce4747;
+        }
+
+        a {
+            font-size: medium;
+            text-align: center;
+        }
+
+        ul a:hover {
+            border-right: 4px solid #ce4844;
+        }
+
+        #list {
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="main">
+        <div class="top">
+            <div class="head">
+                <div id="image">
+                    <img class="img-circle" style="width:100%;height:100%;margin-bottom:5px;" />
+                </div>
+            </div>
+        </div>
+        <div>
+            <div class="left col-lg-2">
+                <ul class="list-group" id="list">
+                    @Html.ActionLink("所有用户", "Index", "Manager", new { @class = "list-group-item" })
+                    @Html.ActionLink("报修处理", "Scrap", "Manager", new { @class = "list-group-item" })
+                </ul>
+            </div>
+            <div class="col-lg-10">
+                <div style="width:90%;">
+                    @RenderBody()
+                </div>
+
+            </div>
+        </div>
+        <hr />
+    </div>
+    <!--js-->
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    @RenderSection("scripts", required: false)
+    <script>
+        //模态框居中
+        function centerModals() {
+            $('.modal').each(function (i) {
+                var $clone = $(this).clone().css('display', 'block').appendTo('body');
+                var top = Math.round(($clone.height() - $clone.find('.modal-content').height()) / 2);
+                top = top > 50 ? top : 0;
+                $clone.remove();
+                $(this).find('.modal-content').css("margin-top", top - 50);
+            });
+        }
+        $('.modal').on('show.bs.modal', centerModals);
+        $(window).on('resize', centerModals);
+        //非法进入
+        window.onload = function () {
+            var user_id = $.cookie("user_id");
+            if (user_id == null) {
+                window.location.href = "/Home/Unlogin";
+            } else {
+                $.ajax({
+                    type: "get",//方法类型
+                    dataType: "json",//预期服务器返回的数据类型
+                    url: "/Home/GetHeadimage?userid=" + user_id,
+                    async: true,
+                    success: function (result) {
+                        var x;
+                        switch (result.data.user_authority) {
+                            case 0: x = "初级用户"; break;
+                            case 1: x = "高级用户"; break;
+                            case 2: x = "监管员"; break;
+                            case 3: x = "Workcell经理"; break;
+                            case 4: x = "系统管理员"; break;
+                        }
+                        $("#image").append("<span>" + x + ":" + result.data.user_name + "</span>");
+                        $(".img-circle").attr("src", result.data.user_picture);
+                    },
+                    error: function () {
+                        console.log("获取头像和姓名出错");
+                    }
+                })
+            }
+        }
+    </script>
+</body>
+</html>

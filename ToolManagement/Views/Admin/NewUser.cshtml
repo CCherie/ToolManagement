@@ -1,0 +1,219 @@
+﻿
+@{
+    ViewBag.Title = "NewUser";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+<style>
+    #user_image, #user_imagebig {
+        width: 100px;
+        height: 100px;
+        border: 1px solid #ccc;
+        border-radius: 2px;
+        background-size:cover;
+        margin-right:10px;
+        background-image:url("../../images/userImage/0.jpg")
+    }
+
+    #user_imagebig {
+        width: 200px;
+        height: 200px;
+    }
+
+    .form-group input{
+        display:inline-block;
+    }
+
+    #tips{
+       color:#ca3333;
+       visibility:hidden;
+    }
+</style>
+<div id="container">
+    <hr />
+    <form class="form-horizontal col-sm-6" role="form" id="user">
+        <div class="form-group">
+            <label for="user_number" class="col-sm-2 control-label">工号</label>
+            <input type="text" class="form-control" name="user_number" id="user_number" readonly>
+            <button type="button" onclick="Refresh()" class="btn btn-default" ><span class="glyphicon glyphicon-repeat" aria-hidden="true"></span></button>
+            <span id="tips" class="number">*必填</span>
+        </div>
+        <div class="form-group">
+            <label for="user_name" class="col-sm-2 control-label">姓名</label>
+            <input type="text" class="form-control" name="user_name" style="display:inline-block" id="user_name"/>
+            <span id="tips" class="name">*必填</span>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label">性别</label>
+            <label class="radio-inline">
+                <input type="radio"  value="男" checked="checked" name="user_gender" />男
+            </label>
+            <label class="radio-inline">
+                <input type="radio" value="女" name="user_gender" />女 
+            </label>
+        </div>
+        <div class="form-group">
+            <label for="user_age" class="col-sm-2 control-label">出生日期</label>
+            <input class="form-control" type="text" name="user_age" id="user_age" />
+            <span id="tips" class="age">*必填</span>
+        </div>
+        <div class="form-group">
+            <label for="user_authority" class="col-sm-2 control-label">权限</label>
+            <select class="form-control" name="user_authority">
+                <option value="0" selected>初级管理员</option>
+                <option value="1">高级管理员</option>
+                <option value="2">监管员</option>
+                <option value="3">Workcell经理</option>
+                <option value="4">系统管理员</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="user_address" class="col-sm-2 control-label">家庭住址</label>
+            <input class="form-control" type="text" name="user_address" id="user_address" />
+            <span id="tips" class="address">*必填</span>
+        </div>
+        <div class="form-group">
+            <label for="user_phone" class="col-sm-2 control-label">联系方式</label>
+            <input class="form-control" type="text" name="user_phone" id="user_phone" />
+            <span id="tips" class="phone">*必填</span>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label" for="user_picture">上传照片</label>
+            <input type="file" id="user_picture" name="user_picture" class="col-sm-10" onchange="showImage()" ;>
+            <span id="tips" class="picture">*必填</span>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-offset-2">
+                <input type="button" class="btn btn-default" onclick="personReply()" value="提交" />
+                <button type="reset" class="btn btn-danger">重填</button>
+            </div>
+        </div>
+    </form>
+    <div id="user_image" class="col-sm-2">
+    </div>
+    <div id="user_imagebig" class="col-sm-2">
+    </div>
+</div>
+@Scripts.Render("~/Scripts/laydate/laydate.js")
+@section scripts{
+    <script>
+        $(function () {
+            laydate.render({
+                elem: '#user_age',
+                max: 0
+            });
+        });
+        function Refresh() {
+            var date = new Date();
+            var year = date.getFullYear();
+            var month = date.getMonth() + 1;
+            var day = date.getDate();
+            if (month < 10) {
+                month = "0" + month;
+            }
+            if (day < 10) {
+                day = "0" + day;
+            }
+            var id = Math.floor(Math.random() * 100);
+            if (id < 10) {
+                id = "0" + id;
+            }
+            var x = year + month + day + "00" + id;
+            console.log(x);
+            var date = {
+                user_number: x
+            };
+            $.ajax({
+                type: "POST",//方法类型
+                dataType: "json",//预期服务器返回的数据类型
+                url: "/Home/GetPersonName",
+                data: date,
+                async: true,
+                success: function (result) {
+                    if (result == 0) {
+                        $("#user_number").val(x);
+                    } else {
+                        Refresh();
+                    }
+                },
+                error: function () {
+                    alert("系统出错了，请联系管理员解决");
+                }
+            })
+
+        }
+        //预览图片
+        function showImage() {
+            var fileInput = document.getElementById("user_picture");
+            console.log(fileInput);
+            var file = fileInput.files[0];
+            //创建读取文件的对象
+            var reader = new FileReader();
+            //创建文件读取相关的变量
+            var imgFile;
+            //为文件读取成功设置事件
+            reader.onload = function (e) {
+                imgFile = e.target.result;
+                $("#user_image").css("backgroundImage", "url(" + imgFile + ")");
+                $("#user_imagebig").css("backgroundImage", "url(" + imgFile + ")");
+            };
+            //console.log(imgFile);
+            reader.readAsDataURL(file);
+        }
+        //添加新用户
+        function personReply() {
+            var user_number = $("#user_number").val();
+            if (user_number == "") {
+                $(".number").css("visibility", "visible");
+            } else {
+                $(".number").css("visibility", "hidden");
+            }
+            if ($("#user_name").val() == "") {
+                $(".name").css("visibility", "visible");
+            } else {
+                $(".name").css("visibility", "hidden");
+            }
+            if ($("#user_age").val() == "") {
+                $(".age").css("visibility", "visible");
+            } else {
+                $(".age").css("visibility", "hidden");
+            }
+            if ($("#user_address").val() == "") {
+                $(".address").css("visibility", "visible");
+            } else {
+                $(".address").css("visibility", "hidden");
+            }
+            if ($("#user_phone").val() == "") {
+                $(".phone").css("visibility", "visible");
+            } else {
+                $(".phone").css("visibility", "hidden");
+            }
+            if ($("#user_picture").val() == "") {
+                $(".picture").css("visibility", "visible");
+            } else {
+                $(".picture").css("visibility", "hidden");
+            }
+            var formData = new FormData($("#user")[0]);
+            $.ajax({
+                type: "post",
+                url: "/Admin/personReply",
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (result) {
+                    var data = eval("(" + result + ")");
+                    if (data.msg == 0) {
+                        alert("提交成功!");
+                        window.location.href = "/Admin/Index";
+                    } else {
+                        alert("出错了,请稍后再试!");
+                    }
+                },
+                error: function () {
+
+                }
+            })
+        }
+    </script>
+}
+
+

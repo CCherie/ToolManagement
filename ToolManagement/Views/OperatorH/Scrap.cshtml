@@ -1,0 +1,265 @@
+﻿
+@{
+    ViewBag.Title = "Scrap";
+    Layout = "~/Views/Shared/_LayoutOperatorH.cshtml";
+}
+<style>
+    #tool_image {
+        width: 200px;
+        height: 100px;
+        border: 1px solid #ccc;
+        border-radius: 2px;
+        background-size: cover;
+        margin-bottom: 20px;
+    }
+
+    blockquote {
+        border: 1px solid #eee;
+        border-radius: 3px;
+        border-left: 5px solid #e15151;
+    }
+
+    #detail {
+        float: right;
+    }
+</style>
+<ul class="nav nav-tabs">
+    <li class="active"><a href="#panel" data-toggle="tab" aria-controls="home" role="tab">申请报废</a></li>
+    <li><a href="#pane2" data-toggle="tab">已提交</a></li>
+    <li><a href="#pane3" data-toggle="tab">已处理</a></li>
+</ul>
+<div class="tab-content">
+    <br />
+    <div class="tab-pane active" id="panel">
+        <form class="form-horizontal" role="form" id="scrap">
+            <div class="form-group">
+                <label for="tool_number" class="col-sm-2 control-label">工夹具编号</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" id="tool_number" placeholder="请输入编号">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="repair_reason" class="col-sm-2 control-label">报废原因</label>
+                <div class="col-sm-10">
+                    <textarea class="form-control" rows="3" id="scrap_reason"></textarea>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10">
+                    <input type="button" class="btn btn-default" onclick="scrapReply()" value="提交" />
+                    <button type="reset" class="btn btn-danger">重填</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="tab-pane" id="pane2">
+        <div style="width:90%;margin:auto" id="cardListN">
+        </div>
+    </div>
+    <div class="tab-pane" id="pane3">
+        <div style="width:90%;margin:auto" id="cardListY">
+        </div>
+    </div>
+</div>
+@*详细信息弹框*@
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog  modal-dialog-centered " style="width:30%;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <!-- 模态框主体 -->
+            <div class="modal-body">
+                <form class="form-horizontal" role="form">
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">工具编号</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" id="tool_number_detail">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">报废理由</label>
+                        <div class="col-sm-9">
+                            <textarea class="form-control" rows="2" id="scrap_reason_detail"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">一审</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" id="scrap_first_trial">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">处理人</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" id="first_operator">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">二审</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" id="scrap_second_trial">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">处理人</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" id="second_operator">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <!-- 模态框底部 -->
+        </div>
+    </div>
+</div>
+@section scripts{
+    <script>
+        //提交报废申请
+        function scrapReply() {
+            var data = {
+                scrap_applicant: $.cookie("user_id"),
+                tool_number: $("#tool_number").val(),
+                scrap_reason: $("#scrap_reason").val()
+            }
+            console.log(data);
+            $.ajax({
+                type: "post",
+                url: "/OperatorH/scrapReply",
+                data: data,
+                async: true,
+                success: function (result) {
+                    var data = eval("(" + result + ")");
+                    console.log(result);
+                    if (data.msg == 0) {
+                        alert("提交成功!");
+                        location.reload();
+                    } else {
+                        alert("出错了,请稍后再试!");
+                    }
+                },
+                error: function () {
+
+                }
+            })
+        }
+        //查看提交的报废申请
+        $(function () {
+            var data = {
+                user_number: $.cookie("user_id"),
+            }
+            $.ajax({
+                type: "post",//方法类型
+                url: "/operatorH/GetScrapInformation",
+                data: data,
+                async: true,
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (result) {
+                    var data = eval("(" + result + ")");
+                    console.log(data);
+                    for (var i = data.data.length - 1; i >= 0; i--) {
+                        if (data.data[i].scrap_first_trial == 0) {
+                            $("#cardListN").append(" <blockquote><p> 编号:" + data.data[i].tool_number +
+                                "<input style='float:right' type='button' class='btn btn-danger' onclick='backout(" + data.data[i].scrap_id + ")' value='撤销' />" +
+                                "</p ><p>报修原因:" + data.data[i].scrap_reason + "<footer>" + data.data[i].scrap_date.substring(0, 10) +
+                                "<a><span id = 'detail' onclick = 'readDetail(" + JSON.stringify(data.data[i]) +
+                                ")'> 查看详情</span ></a></footer ></blockquote>")
+                        } else {
+                            $("#cardListY").append(" <blockquote><p> 编号:" + data.data[i].tool_number +
+                                "</p ><p>报修原因:" + data.data[i].scrap_reason + "<footer>" + data.data[i].scrap_date.substring(0, 10) +
+                                "<a><span id = 'detail' onclick = 'readDetail(" + JSON.stringify(data.data[i]) +
+                                ")'> 查看详情</span ></a></footer ></blockquote>")
+                        }
+                    }
+                },
+                error: function () {
+                    console.log("系统出错了，请联系管理员解决");
+                }
+            })
+        })
+        //查看报修详细信息
+        function readDetail(x) {
+            console.log(x);
+            $("#myModal").modal('show');
+            event.stopPropagation();
+            $("#tool_number_detail").val(x.tool_number);
+            $("#scrap_reason_detail").val(x.scrap_reason);
+            $("#scrap_first_trial").val("等待审核中");
+            $("#first_operator").val("暂无");
+            $("#scrap_second_trial").val("等待审核中");
+            $("#second_operator").val("暂无");
+            if (x.scrap_first_trial == 1 || x.scrap_first_trial == 2) {
+                var first_operator = {
+                    user_number: x.first_operator
+                }
+                $.ajax({
+                    type: "post",//方法类型
+                    url: "/Home/getPersonName",
+                    data: first_operator,
+                    async: true,
+                    success: function (result) {
+                        $("#first_operator").val(result);
+                    },
+                    error: function () {
+                        console.log("系统出错了，请联系管理员解决");
+                    }
+                });
+                if (x.scrap_first_trial == 1) {
+                    $("#scrap_first_trial").val("已通过");
+                    console.log(x.scrap_second_trial);
+                    if (x.scrap_second_trial == 1 || x.scrap_second_trial == 2) {
+
+                        var second_operator = {
+                            user_number: x.second_operator
+                        }
+                        $.ajax({
+                            type: "post",//方法类型
+                            url: "/Home/getPersonName",
+                            data: second_operator,
+                            async: true,
+                            success: function (result) {
+                                $("#second_operator").val(result);
+                            },
+                            error: function () {
+                                console.log("系统出错了，请联系管理员解决");
+                            }
+                        });
+                        if (x.scrap_second_trial == 1) {
+                            $("#scrap_second_trial").val("已通过");
+                        }
+                        else {
+                            $("#scrap_second_trial").val("未通过");
+                        }
+                    }
+                } else {
+                    $("#scrap_first_trial").val("未通过");
+                    $("#scrap_second_trail").val("暂无");
+                    $("#second_operator").val("暂无");
+                }
+            }
+        }
+        //撤销还未处理的申请
+        function backout(x) {
+            var scrap_id = parseInt(x);
+            var message = confirm("确定撤销此申请吗,撤销后不可更改!");
+            if (message == true) {
+                $.ajax({
+                    type: "get",//方法类型
+                    url: "/OperatorH/Backout?scrap_id=" + scrap_id,
+                    async: true,
+                    success: function (result) {
+                        console.log(result);
+                        if (result == 200) {
+                            alert("操作成功!");
+                            location.reload();
+                        }
+                    },
+                    error: function () {
+                        console.log("系统出错了，请联系管理员解决");
+                    }
+                })
+            }
+        }
+    </script>
+}
+

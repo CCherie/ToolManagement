@@ -1,0 +1,260 @@
+﻿
+@{
+    ViewBag.Title = "Repair";
+    Layout = "~/Views/Shared/_LayoutOperatorL.cshtml";
+}
+<style>
+    #tool_image {
+        width: 200px;
+        height: 100px;
+        border: 1px solid #ccc;
+        border-radius: 2px;
+        background-size: cover;
+        margin-bottom: 20px;
+    }
+
+    blockquote {
+        border: 1px solid #eee;
+        border-radius: 3px;
+        border-left: 5px solid #e15151;
+    }
+
+    #detail {
+        float: right;
+    }
+</style>
+<ul class="nav nav-tabs">
+    <li class="active"><a href="#panel" data-toggle="tab" aria-controls="home" role="tab">申请报修</a></li>
+    <li><a href="#pane2" data-toggle="tab">已提交</a></li>
+    <li><a href="#pane3" data-toggle="tab">已处理</a></li>
+</ul>
+<div class="tab-content">
+    <br />
+    <div class="tab-pane active" id="panel">
+        <form class="form-horizontal" role="form" id="repair">
+            <div class="form-group">
+                <label for="tool_number" class="col-sm-2 control-label">工夹具编号</label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" name="tool_number" placeholder="请输入编号" value="@ViewBag.tool_number">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="repair_reason" class="col-sm-2 control-label">报修原因</label>
+                <div class="col-sm-10">
+                    <textarea class="form-control" rows="3" name="repair_reason"></textarea>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label" for="repair_picture">上传照片</label>
+                <div class="col-sm-10">
+                    <input type="file" id="repair_picture" name="repair_picture" class="col-sm-10" onchange="showImage()" ;>
+                </div>
+            </div>
+            <div id="tool_image" class="col-sm-offset-2">
+            </div>
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10">
+                    <input type="button" class="btn btn-default" onclick="repairReply()" value="提交" />
+                    <button type="reset" class="btn btn-danger">重填</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="tab-pane" id="pane2">
+        <div style="width:90%;margin:auto" id="cardListN">
+        </div>
+    </div>
+    <div class="tab-pane" id="pane3">
+        <div style="width:90%;margin:auto" id="cardListY">
+        </div>
+    </div>
+</div>
+@*详细信息弹框*@
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog  modal-dialog-centered " style="width:30%;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <!-- 模态框主体 -->
+            <div class="modal-body">
+                <form class="form-horizontal" role="form">
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">申请人</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" id="applicant_name">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">工具编号</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" id="tool_number">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">报修理由</label>
+                        <div class="col-sm-9">
+                            <textarea class="form-control" rows="2" id="repair_reason"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">处理状态</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" id="repair_status">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">处理人</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" id="operator_name">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label">图片</label>
+                        <div class="col-sm-9">
+                            <img src="" style="width:70%;height:100px;" id="repair_img" />
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <!-- 模态框底部 -->
+        </div>
+    </div>
+</div>
+@section scripts{
+    <script>
+        //预览图片
+        function showImage() {
+            var fileInput = document.getElementById("repair_picture");
+            var file = fileInput.files[0];
+            //创建读取文件的对象
+            var reader = new FileReader();
+            //创建文件读取相关的变量
+            var imgFile;
+            //为文件读取成功设置事件
+            reader.onload = function (e) {
+                imgFile = e.target.result;
+                $("#tool_image").css("backgroundImage", "url(" + imgFile + ")");
+            };
+            //console.log(imgFile);
+            reader.readAsDataURL(file);
+        }
+        //提交报修申请
+        function repairReply() {
+            var formData = new FormData($("#repair")[0]);
+            formData.append("repair_applicant", $.cookie("user_id"));
+            $.ajax({
+                type: "post",
+                url: "/OperatorL/repairReply",
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (result) {
+                    var data = eval("(" + result + ")");
+                    console.log(result);
+                    if (data.msg == 0) {
+                        alert("提交成功!");
+                        location.reload();
+                    } else {
+                        alert("出错了,请稍后再试!");
+                    }
+                },
+                error: function () {
+
+                }
+            })
+        }
+        //查看提交的报修申请
+        $(function () {
+            var data = {
+                user_number: $.cookie("user_id"),
+            }
+            $.ajax({
+                type: "post",//方法类型
+                url: "/operatorl/getRepairInformation",
+                data: data,
+                async: true,
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (result) {
+                    var data = eval("(" + result + ")");
+                    for (var i = data.data.length - 1; i>= 0; i--) {
+                        if (data.data[i].repair_status == 0) {
+                            $("#cardListN").append(" <blockquote><p> 编号:" + data.data[i].tool_number +
+                                "<input style='float:right' type='button' class='btn btn-danger' onclick='backout(" + data.data[i].repair_id + ")' value='撤销' />" +
+                                "</p ><p>报修原因:" + data.data[i].repair_reason + "<footer>" + data.data[i].repair_date.substring(0, 10) +
+                                "<a><span id = 'detail' onclick = 'readDetail(" + JSON.stringify(data.data[i]) +
+                                ")'> 查看详情</span ></a></footer ></blockquote>")
+                        } else {
+                            $("#cardListY").append(" <blockquote><p> 编号:" + data.data[i].tool_number +
+                                "</p ><p>报修原因:" + data.data[i].repair_reason + "<footer>" + data.data[i].repair_date.substring(0, 10) +
+                                "<a><span id = 'detail' onclick = 'readDetail(" + JSON.stringify(data.data[i]) +
+                                ")'> 查看详情</span ></a></footer ></blockquote>")
+                        } 
+                    }
+                },
+                error: function () {
+                    console.log("系统出错了，请联系管理员解决");
+                }
+            })
+        })
+        //查看报修详细信息
+        function readDetail(x) {
+            $('#myModal').modal('show');
+            event.stopPropagation();
+            $("#applicant_name").val(x.repair_applicant);
+            $("#tool_number").val(x.tool_number);
+            $("#repair_reason").val(x.repair_reason);
+            $("#repair_img").attr("src", x.repair_picture);
+            if (x.repair_status == 0) {
+                $("#repair_status").val("正在处理中");
+                $("#operator_name").val("暂无");
+            } else if (x.repair_status == 1) {
+                $("#repair_status").val("申请已通过");
+            } else {
+                $("#repair_status").val("申请未通过");
+            }
+            var data = {
+                user_number: x.repair_operator
+            }
+            console.log(x.repair_operator)
+            $.ajax({
+                type: "post",//方法类型
+                url: "/Home/getPersonName",
+                data: data,
+                async: true,
+                success: function (result) {
+                    $("#operator_name").val(result);
+                },
+                error: function () {
+                    console.log("系统出错了，请联系管理员解决");
+                }
+            })
+            console.log(x);
+        }
+        //撤销还未处理的申请
+        function backout(x) {
+            console.log(x);
+            var repair_id = parseInt(x);
+            var message = confirm("确定撤销此申请吗,撤销后不可更改!");
+            if (message == true) {
+                $.ajax({
+                    type: "get",//方法类型
+                    url: "/OperatorL/backout?repair_id=" + repair_id,
+                    async: true,
+                    success: function (result) {
+                        console.log(result);
+                        if (result == 200) {
+                            alert("操作成功!");
+                            location.reload();
+                        }
+                    },
+                    error: function () {
+                        console.log("系统出错了，请联系管理员解决");
+                    }
+                })
+            }
+        }
+    </script>
+}
+
+
